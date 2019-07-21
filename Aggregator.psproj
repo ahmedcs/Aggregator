@@ -94,7 +94,7 @@
             }, 
             "targets": {
                 "": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "ext_obj_files": [], 
                         "obj_files": [], 
@@ -133,7 +133,7 @@
                     "tool": "p4compiler"
                 }, 
                 ".\\Aggregator": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "list_assignments": {
                         "i32.me0": [
                             "pif_app_nfd.list"
@@ -370,7 +370,7 @@
                     "tool": "linker"
                 }, 
                 ".\\out\\app_master.list\\app_master.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\hashmap\\src\\camp_hash.c", 
@@ -384,6 +384,8 @@
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\apps\\common\\src\\app_master_common.c", 
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\pif\\src\\pif_init.c", 
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\pif\\src\\mac_time.c", 
+                            ".\\out\\pif_digests.c", 
+                            ".\\out\\pif_parrep_pvs_sync.c", 
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\macflush\\libmacflush.c", 
                             "$(SDKDIR)\\p4\\components\\gro\\libgro.c", 
                             "$(SDKDIR)\\components\\flowenv\\me\\lib\\nfp\\libnfp.c", 
@@ -442,7 +444,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\blm0.list\\blm0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\components\\flowenv\\me\\blocks\\blm\\blm_main.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -484,7 +486,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\flowcache_timeout_emu0.list\\flowcache_timeout_emu0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\apps\\common\\src\\fc.c", 
@@ -543,7 +545,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\gro0.list\\gro0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\p4\\components\\gro\\me\\gro_out.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -583,7 +585,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\gro1.list\\gro1.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\p4\\components\\gro\\me\\gro_out.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -623,7 +625,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\nbi_init_csr.list\\nbi_init_csr.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\apps\\common\\src\\nbi_init.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -659,7 +661,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\nfd_pcie0_notify.list\\nfd_pcie0_notify.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\flowenv\\me\\blocks\\blm\\libblm.c", 
@@ -715,7 +717,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\nfd_pcie0_pci_in_gather.list\\nfd_pcie0_pci_in_gather.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\flowenv\\me\\blocks\\blm\\libblm.c", 
@@ -771,7 +773,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\nfd_pcie0_pci_in_issue0.list\\nfd_pcie0_pci_in_issue0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_in_me1.c", 
@@ -826,7 +828,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\nfd_pcie0_pci_in_issue1.list\\nfd_pcie0_pci_in_issue1.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_in_me1.c", 
@@ -881,7 +883,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\nfd_pcie0_pci_out_me0.list\\nfd_pcie0_pci_out_me0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_out_me0.c", 
@@ -936,7 +938,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\nfd_pcie0_pd0.list\\nfd_pcie0_pd0.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_out_pd.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -977,7 +979,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\nfd_pcie0_pd1.list\\nfd_pcie0_pd1.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_out_pd.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -1018,7 +1020,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\nfd_pcie0_sb.list\\nfd_pcie0_sb.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_file": "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\pci_out_sb.uc", 
                     "list_type": "component", 
                     "settings": {
@@ -1062,7 +1064,7 @@
                     "tool": "assembler"
                 }, 
                 ".\\out\\nfd_svc.list\\nfd_svc.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\svc_me.c", 
@@ -1122,7 +1124,7 @@
                     "tool": "compiler"
                 }, 
                 ".\\out\\pif_app_nfd.list\\pif_app_nfd.list": {
-                    "build_required": true, 
+                    "build_required": false, 
                     "input_files": {
                         "c_source_files": [
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\apps\\common\\src\\fc.c", 
@@ -1138,6 +1140,19 @@
                             "$(SDKDIR)\\components\\ng_nfd\\me\\blocks\\vnic\\libnfd.c", 
                             "$(SDKDIR)\\components\\flowenv\\me\\blocks\\blm\\libblm.c", 
                             "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\macflush\\libmacflushuser.c", 
+                            ".\\out\\pif_design.c", 
+                            ".\\out\\pif_parrep.c", 
+                            ".\\out\\pif_actions.c", 
+                            ".\\out\\pif_global.c", 
+                            ".\\out\\pif_ctlflow.c", 
+                            ".\\out\\pif_tables.c", 
+                            ".\\out\\pif_deparse.c", 
+                            ".\\out\\pif_digests.c", 
+                            ".\\out\\pif_meters.c", 
+                            ".\\out\\pif_registers.c", 
+                            ".\\out\\pif_pkt_recurse.c", 
+                            ".\\out\\pif_pkt_clone.c", 
+                            ".\\out\\pif_flcalc.c", 
                             "$(SDKDIR)\\p4\\components\\dcfl\\me\\lib\\dcfl\\libdcfl.c", 
                             "$(SDKDIR)\\p4\\components\\gro\\libgro.c", 
                             "$(SDKDIR)\\components\\flowenv\\me\\lib\\nfp\\libnfp.c", 
@@ -1469,6 +1484,48 @@
                 }, 
                 "$(SDKDIR)\\p4\\components\\nfp_pif\\me\\lib\\pif\\src\\pif_pkt.c": {
                     "update": "YES"
+                }, 
+                ".\\out\\pif_actions.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_ctlflow.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_deparse.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_design.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_digests.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_flcalc.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_global.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_meters.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_parrep.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_parrep_pvs_sync.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_pkt_clone.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_pkt_recurse.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_registers.c": {
+                    "update": "YES"
+                }, 
+                ".\\out\\pif_tables.c": {
+                    "update": "YES"
                 }
             }, 
             "microcode": {
@@ -1483,7 +1540,11 @@
                     "update": "YES"
                 }
             }, 
-            "p4userconfigs": {}
+            "p4userconfigs": {
+                ".\\Aggregator.p4cfg": {
+                    "update": "YES"
+                }
+            }
         }, 
         "folder_mapping": {}, 
         "legacy_mode": false, 
@@ -1503,7 +1564,7 @@
             }
         }, 
         "project_name": "Aggregator", 
-        "project_path": "C:\\Users\\ahmed\\NFP_SDK\\Aggregator\\Aggregator.psproj", 
+        "project_path": "C:\\Users\\sayeam0a\\Documents\\GitHub\\Aggregator\\Aggregator.psproj", 
         "sim_startup_options": {
             "imported_var_data_file": "", 
             "sim_profile_started": true, 

@@ -60,6 +60,8 @@ header ethernet_t {
  * ethertype 0x1234 for is (see parser)
  */
 const bit<16> P4CALC_ETYPE = 0x1234;
+const bit<16> P4AGGR_ETYPE = 0x2234;
+
 const bit<8>  P4CALC_P     = 0x50;   // 'P'
 const bit<8>  P4CALC_4     = 0x34;   // '4'
 const bit<8>  P4CALC_VER   = 0x01;   // v0.1
@@ -71,6 +73,7 @@ const bit<8>  P4CALC_CARET = 0x5e;   // '^'
 
 const bit<8>  P4AGGR_RESET = 0x52;   // 'R'
 const bit<8>  P4AGGR_ADD = 0x41;   // 'A'
+const bit<32>  MAX_COUNT = 0x03;
 
 header p4calc_t {
     bit<8>  p;
@@ -101,7 +104,10 @@ struct headers {
  
 struct metadata {
     /* In our case it is empty */
+    bit<32> agg_counter;
+    bit<32> agg_register;
 }
+
 
 /*************************************************************************
  ***********************  P A R S E R  ***********************************
@@ -114,7 +120,8 @@ parser MyParser(packet_in packet,
     state start {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType) {
-            P4CALC_ETYPE : check_p4calc;
+            P4CALC_ETYPE   : check_p4calc;
+            //P4AGGR_ETYPE     : check_p4calc;
             default      : accept;
         }
     }
@@ -150,6 +157,7 @@ control MyIngress(inout headers hdr,
                   inout standard_metadata_t standard_metadata) {
                
     register <bit <32>> (1) aggregator;
+    register <bit <32>> (1) aggcounter;
     
     action send_back(bit<32> result) {
         bit<48> tmp;
@@ -165,7 +173,22 @@ control MyIngress(inout headers hdr,
         /* Send the packet back to the port it came from */
         standard_metadata.egress_spec = standard_metadata.ingress_port;
     }
-    
+
+     action send_register() {
+        bit<48> tmp;
+
+        /* Put the result back in */
+        hdr.p4calc.res = meta.agg_counter; //meta.agg_register;
+        
+        /* Swap the MAC addresses */
+        tmp = hdr.ethernet.dstAddr;
+        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+        hdr.ethernet.srcAddr = tmp;
+        
+        /* Send the packet back to the port it came from */
+        standard_metadata.egress_spec = standard_metadata.ingress_port;
+    }
+        
     action operation_add() {
         send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
     }
@@ -190,24 +213,62 @@ control MyIngress(inout headers hdr,
         
         bit <32> agg = 0x0;
         bit <32> index = 0x0;
+
         aggregator.read(agg, index);
+
         agg = agg + hdr.p4calc.operand_a;
+
         aggregator.write(index, agg);
-        send_back(agg);
+
+        //send_back(aggcount);
+        //mark_to_drop();
+    }
+
+    action inc_counter() {
+        bit <32> aggcount = 0x0;
+        bit <32> index = 0x0;
+
+        aggcounter.read(aggcount, index);
+
+        aggcount = aggcount + 0x1;
+
+        aggcounter.write(index, aggcount);
+;
     }
 
     action reset_aggregator() {
         bit <32> agg = hdr.p4calc.operand_a;
         bit <32> index = 0x0;
         aggregator.write(index, agg);
+        aggcounter.write(index, 0x0);
         aggregator.read(agg, index);
-        send_back(agg);
+        //send_back(agg);
+    }
+
+    action reset_counter() {
+        bit <32> index = 0x0;
+        aggcounter.write(index, 0x0);
+        //send_back(agg);
     }
 
     action operation_drop() {
         mark_to_drop();
     }
-    
+
+    action read_counter() {
+        bit <32> index = 0x0;
+        aggcounter.read(meta.agg_counter, index);
+        //send_back(agg);
+    }
+
+
+
+    action read_aggregator() {
+        bit <32> index = 0x0;
+        aggregator.read(meta.agg_register, index);
+        //send_back(agg);
+    }
+        
     table calculate {
         key = {
             hdr.p4calc.op        : exact;
@@ -218,10 +279,6 @@ control MyIngress(inout headers hdr,
             operation_and;
             operation_or;
             operation_xor;
-
-            reset_aggregator;
-            add_aggregator;
-
             operation_drop;
         }
         const default_action = operation_drop();
@@ -231,20 +288,80 @@ control MyIngress(inout headers hdr,
             P4CALC_AND  : operation_and();
             P4CALC_OR   : operation_or();
             P4CALC_CARET: operation_xor();
+        }
+    }
 
+    table aggtab {
+
+        key = {
+             hdr.p4calc.op     : exact;
+        }
+        actions = {
+                reset_aggregator;
+                add_aggregator;
+        }
+        const default_action = reset_aggregator();
+        const entries = {
             P4AGGR_RESET: reset_aggregator();
             P4AGGR_ADD: add_aggregator();
         }
+     }
+
+    table countertab {
+        key = {
+             hdr.p4calc.op      : exact;
+        }
+        actions = {
+             reset_counter;
+             inc_counter;
+        }
+        const default_action = reset_counter();
+        const entries = {
+            P4AGGR_RESET: reset_counter();
+            P4AGGR_ADD: inc_counter();
+            }
     }
 
+    table sendout {
+        key = {
+             meta.agg_counter    : exact;
+        }
+        actions = {
+             send_register;
+        }
+        const default_action = send_register;
+    }
             
     apply {
-        if (hdr.p4calc.isValid()) {
-            calculate.apply();
-        } else {
-            operation_drop();
+        //read_counter();
+        //read_aggregator();
+        /*if ( meta.agg_counter > MAX_COUNT) {
+                countertab.apply();
+                send_back(meta.agg_register);   
+                exit;
         }
-    }
+        else {*/
+        if (hdr.p4calc.isValid()) {                  
+                    
+                    if ( hdr.p4calc.op == 0x41 || hdr.p4calc.op == 0x52)
+                    {
+                        aggtab.apply();
+                        countertab.apply();
+                        read_counter();
+                        read_aggregator();
+                        //if(  meta.agg_counter > MAX_COUNT)
+                        //{
+                               sendout.apply();
+                        //}
+                    }
+                    else
+                    {
+                        calculate.apply();
+                    }
+            } else{
+                operation_drop();
+            }
+     }
 }
 
 /*************************************************************************
