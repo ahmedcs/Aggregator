@@ -101,11 +101,15 @@ struct headers {
  * declare the type, but there is no need to instantiate it,
  * because it is done "by the architecture", i.e. outside of P4 functions
  */
- 
-struct metadata {
-    /* In our case it is empty */
+
+struct ingress_metadata_t {
     bit<32> agg_counter;
     bit<32> agg_register;
+}
+
+struct metadata {
+    /* In our case it is empty */
+    ingress_metadata_t ingress_metadata;
 }
 
 
@@ -136,6 +140,8 @@ parser MyParser(packet_in packet,
     }
     
     state parse_p4calc {
+        //meta.ingress_metadata.agg_counter = 0x0;
+        //meta.ingress_metadata.agg_register = 0x0;
         packet.extract(hdr.p4calc);
         transition accept;
     }
@@ -158,13 +164,13 @@ control MyIngress(inout headers hdr,
                
     register <bit <32>> (1) aggregator;
     register <bit <32>> (1) aggcounter;
+
+    bit<32> agg_val;
+    bit<32> count_val;
     
-    action send_back(bit<32> result) {
+    action send_back() {
         bit<48> tmp;
 
-        /* Put the result back in */
-        hdr.p4calc.res = result;
-        
         /* Swap the MAC addresses */
         tmp = hdr.ethernet.dstAddr;
         hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
@@ -173,100 +179,123 @@ control MyIngress(inout headers hdr,
         /* Send the packet back to the port it came from */
         standard_metadata.egress_spec = standard_metadata.ingress_port;
     }
-
-     action send_register() {
-        bit<48> tmp;
-
+    
+     action set_result(bit<32> result) {
         /* Put the result back in */
-        hdr.p4calc.res = meta.agg_counter; //meta.agg_register;
-        
-        /* Swap the MAC addresses */
-        tmp = hdr.ethernet.dstAddr;
-        hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-        hdr.ethernet.srcAddr = tmp;
-        
-        /* Send the packet back to the port it came from */
-        standard_metadata.egress_spec = standard_metadata.ingress_port;
+        hdr.p4calc.res = result;
+    }
+
+     action set_agg_hdr() {
+        /* Put the result back in */
+        aggregator.read(hdr.p4calc.res, 0x0); //= meta.agg_register;
+    }
+    
+     action set_count_hdr() {
+        /* Put the result back in */
+        aggcounter.read(hdr.p4calc.operand_b, 0x0);  //meta.agg_counter; //meta.agg_register;
     }
         
     action operation_add() {
-        send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
+        set_result(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
     }
     
     action operation_sub() {
-        send_back(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
+        set_result(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
     }
     
     action operation_and() {
-        send_back(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
+        set_result(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
     }
     
     action operation_or() {
-        send_back(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
+        set_result(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
     }
 
     action operation_xor() {
-        send_back(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
+        set_result(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
     }
 
     action add_aggregator() {
         
         bit <32> agg = 0x0;
-        bit <32> index = 0x0;
-
-        aggregator.read(agg, index);
-
-        agg = agg + hdr.p4calc.operand_a;
-
-        aggregator.write(index, agg);
-
+        //bit <32> index = 0x0;
+        //aggregator.read(agg, 0x0);
+        //agg = agg + hdr.p4calc.operand_a;
+        //aggregator.write(0x0, agg);
         //send_back(aggcount);
         //mark_to_drop();
+        
+        /*aggregator.read(meta.ingress_metadata.agg_register, 0x0);
+        meta.ingress_metadata.agg_register = meta.ingress_metadata.agg_register + hdr.p4calc.operand_a;
+        aggregator.write(0x0, meta.ingress_metadata.agg_register);*/
+
+        aggregator.read(hdr.p4calc.res, 0x0);
+        hdr.p4calc.res = hdr.p4calc.res + hdr.p4calc.operand_a;
+        aggregator.write(0x0, hdr.p4calc.res);
+
+        /*aggregator.read(agg, 0x0);
+        agg = agg + hdr.p4calc.operand_a;
+        aggregator.write(0x0, agg);*/
     }
 
     action inc_counter() {
         bit <32> aggcount = 0x0;
-        bit <32> index = 0x0;
+        //bit <32> index = 0x0;
+        //aggcounter.read(aggcount, 0x0);
+        //aggcount = aggcount + 0x1;
+        //aggcounter.write(0x0, aggcount);
 
-        aggcounter.read(aggcount, index);
+        /*aggcounter.read(meta.ingress_metadata.agg_counter , 0x0);
+        meta.ingress_metadata.agg_counter = meta.ingress_metadata.agg_counter + 1; 
+        aggcounter.write(0x0,  meta.ingress_metadata.agg_counter);*/
 
-        aggcount = aggcount + 0x1;
+        aggcounter.read(hdr.p4calc.operand_b , 0x0);
+        hdr.p4calc.operand_b = hdr.p4calc.operand_b  + 1; 
+        aggcounter.write(0x0,  hdr.p4calc.operand_b);
 
-        aggcounter.write(index, aggcount);
-;
+        /*aggcounter.read(aggcount , 0x0);
+        aggcount = aggcount  + 1; 
+        aggcounter.write(0x0,  aggcount);*/
+    }
+
+    action read_aggregator() {
+        //bit <32> index = 0x0;
+        aggregator.read(hdr.p4calc.res, 0x0);
+        //aggregator.read(meta.ingress_metadata.agg_register, 0x0);
+        //aggregator.read(agg_val, 0x0);
+        //send_back(agg);
+    }
+
+     action read_counter() {
+        //bit <32> index = 0x0;
+        aggcounter.read(hdr.p4calc.operand_b, 0x0);
+        //aggcounter.read(meta.ingress_metadata.agg_counter, 0x0);
+        //aggcounter.read(count_val, 0x0);
+        //aggcounter.read(hdr.p4calc.res, 0x0);
+        //send_back(agg);
     }
 
     action reset_aggregator() {
-        bit <32> agg = hdr.p4calc.operand_a;
-        bit <32> index = 0x0;
-        aggregator.write(index, agg);
-        aggcounter.write(index, 0x0);
-        aggregator.read(agg, index);
+        //meta.ingress_metadata.agg_register = hdr.p4calc.operand_a;
+        //bit <32> index = 0x0;
+        //aggregator.write(0x0, agg);
+        //aggregator.read(agg, 0x0);
         //send_back(agg);
+        //aggregator.write(0x0, meta.ingress_metadata.agg_register);
+        //aggregator.read(meta.agg_register, 0x0);
+        aggregator.write(0x0, hdr.p4calc.operand_a);
     }
 
     action reset_counter() {
-        bit <32> index = 0x0;
-        aggcounter.write(index, 0x0);
-        //send_back(agg);
+        //bit <32> val = 0x0;
+        //meta.ingress_metadata.agg_counter = 0x0;
+        //aggcounter.write(0x0, meta.ingress_metadata.agg_counter);
+
+        aggcounter.write(0x0, 0x0);
     }
 
     action operation_drop() {
         mark_to_drop();
-    }
-
-    action read_counter() {
-        bit <32> index = 0x0;
-        aggcounter.read(meta.agg_counter, index);
-        //send_back(agg);
-    }
-
-
-
-    action read_aggregator() {
-        bit <32> index = 0x0;
-        aggregator.read(meta.agg_register, index);
-        //send_back(agg);
     }
         
     table calculate {
@@ -322,14 +351,30 @@ control MyIngress(inout headers hdr,
             }
     }
 
-    table sendout {
+    table set_count_tab {
         key = {
-             meta.agg_counter    : exact;
+              hdr.p4calc.operand_b  : exact;
         }
         actions = {
-             send_register;
+             set_count_hdr;
         }
-        const default_action = send_register;
+        const default_action = set_count_hdr; //send_counter;
+        //const entries = {
+         //   0x4: send_register();
+        //}
+    }
+
+    table set_agg_tab {
+        key = {
+              hdr.p4calc.res  : exact;
+        }
+        actions = {
+             set_agg_hdr;
+        }
+        const default_action = set_agg_hdr; //send_counter;
+        //const entries = {
+         //   0x4: send_register();
+        //}
     }
             
     apply {
@@ -347,20 +392,37 @@ control MyIngress(inout headers hdr,
                     {
                         aggtab.apply();
                         countertab.apply();
-                        read_counter();
-                        read_aggregator();
-                        //if(  meta.agg_counter > MAX_COUNT)
-                        //{
-                               sendout.apply();
-                        //}
+                        //read_aggregator();
+                        //read_counter();
+
+                        //meta.ingress_metadata.agg_counter = count_val;
+                        //meta.ingress_metadata.agg_register = agg_val)
+                        //if (meta.ingress_metadata.agg_counter > MAX_COUNT) //(  hdr.p4calc.res > MAX_COUNT)
+                        //if (count_val > MAX_COUNT)
+                        //sendout.apply();
+                        set_agg_tab.apply();
+                        set_count_tab.apply();
+                        if (  hdr.p4calc.operand_b > MAX_COUNT)
+                        {
+                               //set_agg_hdr();
+                               //set_count_hdr();
+                               send_back();
+
+                        }
+                        /*else
+                        {
+                            operation_drop();
+                        }*/
                     }
                     else
                     {
                         calculate.apply();
+                        send_back();
                     }
-            } else{
+         } 
+         else{
                 operation_drop();
-            }
+         }
      }
 }
 
